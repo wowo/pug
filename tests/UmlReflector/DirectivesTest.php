@@ -1,5 +1,6 @@
 <?php
-namespace UmlReflector;
+
+use UmlReflector\Directives;
 
 class DirectivesTest extends \PHPUnit_Framework_TestCase
 {

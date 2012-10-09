@@ -62,19 +62,24 @@ class Introspector
 
     private function propertiesToDirectives(Directives $directives, \ReflectionObject $reflectionObject, $rootObject)
     {
-        $properties = $reflectionObject->getProperties();
         $baseClassName = $this->getBasename($reflectionObject->getName());
-        foreach ($properties as $property) {
+        foreach ($reflectionObject->getProperties() as $property) {
             $property->setAccessible(true);
             $collaborator = $property->getValue($rootObject);
-            if (!is_object($collaborator)) {
-                continue;
+            if (is_object($collaborator)) {
+                $propertyClass = $this->getBasename(get_class($collaborator));
+                $directives->addComposition($baseClassName, $propertyClass);
+                $this->visualize($collaborator, $directives);
+            } elseif (is_array($collaborator)) {
+                var_dump($property->getDocComment());
             }
-            $propertyClass = $this->getBasename(get_class($collaborator));
-            $directives->addComposition($baseClassName, $propertyClass);
-            $this->visualize($collaborator, $directives);
         }
     }
+
+    private function getAggregatedType()
+    {
+    }
+
 
     private function hierarchyToDirectives(Directives $directives, \ReflectionObject $object)
     {

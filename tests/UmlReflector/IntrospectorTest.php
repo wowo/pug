@@ -1,6 +1,7 @@
 <?php
-namespace UmlReflector;
 
+use UmlReflector\Introspector;
+use UmlReflector\Directives;
 use Stubs\User;
 use Stubs\Shop;
 use Stubs\Product;
@@ -21,7 +22,7 @@ class IntrospectorTest extends \PHPUnit_Framework_TestCase
         $this->directives = new Directives();
     }
 
-    private function visualize($object)
+    protected function visualize($object)
     {
         $this->introspector->visualize($object, $this->directives);
     }
@@ -83,14 +84,14 @@ class IntrospectorTest extends \PHPUnit_Framework_TestCase
     }
 
     public function testCanSkipLibraryNamespaces()
-    {
+    { 
         $this->introspector->addSkippedNamespace('Stubs');
         $shop = new \OtherStubs\LuxuryShop(new Product(new ProductDescription));
         $this->visualize($shop);
         $this->assertResultIs("[LuxuryShop]->[Product]");
     }
 
-    private function assertResultIs($yumlCode)
+    protected function assertResultIs($yumlCode)
     {
         $this->assertEquals($yumlCode, $this->directives->toString());
     }
