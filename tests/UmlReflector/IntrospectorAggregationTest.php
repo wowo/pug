@@ -1,14 +1,25 @@
 <?php
 
-require __DIR__ . '/IntrospectorTest.php';
-
 use Stubs\Wallet;
+use UmlReflector\Introspector;
+use UmlReflector\Directives;
 
-class IntrospectorAggregationTest extends \IntrospectorTest
+class IntrospectorAggregationTest extends \PHPUnit_Framework_TestCase
 {
-    public function testDisplaysWalletWithMoney()
+    private $introspector;
+    private $directives;
+
+
+    public function setUp()
     {
-        $this->visualize(new Wallet());
-        $this->assertResultIs('[Wallet]+->[Money],[Wallet]+->[CreditCard],[CreditCard]^-[Visa],[CreditCard]^-[MasterCard]');
+        $this->introspector = new Introspector();
+        $this->directives = new Directives();
+    }
+
+    public function testDisplaysWalletWithMoneyxxxxxx()
+    {
+        $wallet = new Wallet();
+        $this->introspector->visualize($wallet, $this->directives);
+        $this->assertEquals('[Wallet]+->[Money],[Wallet]+->[CreditCard],[CreditCard]^-[Visa],[CreditCard]^-[MasterCard]', $this->directives->toString());
     }
 }

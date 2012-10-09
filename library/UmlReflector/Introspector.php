@@ -70,14 +70,27 @@ class Introspector
                 $propertyClass = $this->getBasename(get_class($collaborator));
                 $directives->addComposition($baseClassName, $propertyClass);
                 $this->visualize($collaborator, $directives);
-            } elseif (is_array($collaborator)) {
-                var_dump($property->getDocComment());
+            } elseif ($this->getAggregatedClass($property)) {
+                $aggregatedClass = $this->getAggregatedClass($property);
+                $directives->addAggregation($baseClassName, $aggregatedClass);
+                $this->visualize($rootObject, $directives);
             }
         }
     }
 
-    private function getAggregatedType()
+    protected function getAggregatedClass(\ReflectionProperty $property)
     {
+        return $this->extractContainedClass($property->getDocComment());
+    }
+
+    protected function extractContainedClass($docComment)
+    {
+        $matches = array();
+        $docComment = str_replace(PHP_EOL, ' ', $docComment);
+        $matches = array();
+        if (preg_match('#@var (.*?)\[\]#', $docComment, $matches)) {
+            return $matches[1];
+        }
     }
 
 
