@@ -71,16 +71,22 @@ class Introspector
                 $directives->addComposition($baseClassName, $propertyClass);
                 $this->visualize($collaborator, $directives);
             } elseif ($this->getAggregatedClass($property)) {
-                $aggregatedClass = $this->getAggregatedClass($property);
-                $directives->addAggregation($baseClassName, $aggregatedClass);
+                $aggregatedReflectionClass = $this->getAggregatedClass($property);
+                $directives->addAggregation($baseClassName, $this->getBasename($aggregatedReflectionClass->getName()));
                 $this->visualize($rootObject, $directives);
+                $this->subclassesToDirectives($directives, $aggregatedReflectionClass);
             }
         }
     }
 
     protected function getAggregatedClass(\ReflectionProperty $property)
     {
-        return $this->extractContainedClass($property->getDocComment());
+        return new \ReflectionClass($this->removeTrailingBackslash($this->extractContainedClass($property->getDocComment())));
+    }
+
+    protected function removeTrailingBackslash($string)
+    {
+        return preg_replace('/^\\\/', '', $string);
     }
 
     protected function extractContainedClass($docComment)
@@ -93,8 +99,44 @@ class Introspector
         }
     }
 
+    /**
+     * Warning, it assumes that derrived classes are located in same directory and subdirectories (PSR-0). It doesn't look for subclasses outside itself dir
+     * 
+     * @param Directives $directives 
+     * @param \ReflectionClass $rootObject 
+     * @access protected
+     * @return void
+     */
+    protected function subclassesToDirectives(Directives $directives, \ReflectionClass $rootObject)
+    {
+        $this->includeRecursivelyPHPFiles(dirname($rootObject->getFileName()));
+        foreach (get_declared_classes() as $className) {
+            if (is_subclass_of($className, $rootObject->getName())) {
+                $directives->addInheritance($this->getBasename($rootObject->getName()), $this->getBasename($className));
+            }
+        }
+    }
 
-    private function hierarchyToDirectives(Directives $directives, \ReflectionObject $object)
+    /**
+     * @todo, use Finder component here
+     */
+    protected function includeRecursivelyPHPFiles($startingDir)
+    {
+        $path[] = $startingDir . '/*';
+
+        while(count($path) != 0) {
+            $v = array_shift($path);
+            foreach(glob($v) as $item) {
+                if (is_dir($item)) {
+                    $path[] = $item . '/*';
+                } elseif (is_file($item)) {
+                    include_once($item);
+                }
+            }
+        }
+    }
+
+    private function hierarchyToDirectives(Directives $directives, \ReflectionClass $object)
     {
         $parentClass = $object->getParentClass();
         $currentClass = $object;

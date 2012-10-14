@@ -16,10 +16,19 @@ class IntrospectorAggregationTest extends \PHPUnit_Framework_TestCase
         $this->directives = new Directives();
     }
 
-    public function testDisplaysWalletWithMoneyxxxxxx()
+    public function testDisplaysWalletWithMoney()
     {
         $wallet = new Wallet();
         $this->introspector->visualize($wallet, $this->directives);
-        $this->assertEquals('[Wallet]+->[Money],[Wallet]+->[CreditCard],[CreditCard]^-[Visa],[CreditCard]^-[MasterCard]', $this->directives->toString());
+
+        $splittedDirectives = explode(PHP_EOL, $this->directives->toString());
+        $message = sprintf('Output directives are: "%s"', $this->directives->toString());
+
+        $this->assertContains('[Wallet]+->[Money]', $splittedDirectives, $message);
+        $this->assertContains('[Wallet]+->[CreditCard]', $splittedDirectives, $message);
+        $this->assertContains('[CreditCard]^-[Visa]', $splittedDirectives, $message);
+        $this->assertContains('[CreditCard]^-[MasterCard]', $splittedDirectives, $message);
+
+        printf($message . PHP_EOL);
     }
 }
